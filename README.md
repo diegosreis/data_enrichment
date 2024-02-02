@@ -11,6 +11,12 @@ Identifier) values.
 - Pandas
 - Requests
 
+## Dataset Requirements
+This project expects your csv to have the following columns:
+- `lei`: Legal Entity Identifier
+- `notional`: Notional amount
+- `rate`: Rate amount
+
 ## Setup
 
 1. Clone the repository:
