@@ -1,10 +1,11 @@
-from services.gleif_service import GleifService
 import logging
 
 
 class EnricherService:
-    def __init__(self):
-        self.gleif_service = GleifService()
+    chunk_size = 10
+
+    def __init__(self, gleif_service):
+        self.gleif_service = gleif_service
 
     def enrich_data(self, dataset):
         lei_values = dataset['lei'].unique().tolist()
@@ -13,15 +14,14 @@ class EnricherService:
         dataset['bic'] = ''
         dataset['transaction_costs'] = None
 
-        chunk_size = 10
-        lei_chunks = [lei_values[i:i + chunk_size] for i in range(0, len(lei_values), chunk_size)]
+        lei_chunks = [lei_values[i:i + self.chunk_size] for i in range(0, len(lei_values), self.chunk_size)]
 
         logging.info("Start processing chunks.")
 
         for i, lei_chunk in enumerate(lei_chunks, start=1):
-            logging.info(f"Processing Chunk {i} with {len(lei_chunk)} LEIs...")  # Log the number of LEIs in the chunk
+            logging.info(f"Processing Chunk {i} with {len(lei_chunk)} LEIs...")
 
-            api_data = self.gleif_service.call_gleif_api(lei_chunk, chunk_size)
+            api_data = self.gleif_service.call_gleif_api(lei_chunk, self.chunk_size)
             self._process_lei_entries(api_data, dataset)
 
             logging.info(f"Chunk {i} processed successfully.")

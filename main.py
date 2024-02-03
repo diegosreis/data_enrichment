@@ -5,6 +5,7 @@ import os
 import pandas as pd
 
 from services.enricher_service import EnricherService
+from services.gleif_service import GleifService
 logging.basicConfig(level=logging.INFO)
 
 
@@ -33,7 +34,9 @@ def main():
         logging.error(f"Error: The file {args.file_path} is empty.")
         return
 
-    enrich_service = EnricherService()
+    gleif_service = GleifService()
+    enrich_service = EnricherService(gleif_service)
+
     enriched_dataset = enrich_service.enrich_data(dataset)
 
     if not enriched_dataset.empty:
