@@ -1,4 +1,5 @@
 from services.gleif_service import GleifService
+import logging
 
 
 class EnricherService:
@@ -6,7 +7,7 @@ class EnricherService:
         self.gleif_service = GleifService()
 
     def enrich_data(self, dataset):
-        lei_values = dataset['lei'].tolist()
+        lei_values = dataset['lei'].unique().tolist()
 
         dataset['legalName'] = ''
         dataset['bic'] = ''
@@ -15,13 +16,19 @@ class EnricherService:
         chunk_size = 10
         lei_chunks = [lei_values[i:i + chunk_size] for i in range(0, len(lei_values), chunk_size)]
 
+        logging.info("Start processing chunks.")
+
         for i, lei_chunk in enumerate(lei_chunks, start=1):
+            logging.info(f"Processing Chunk {i} with {len(lei_chunk)} LEIs...")  # Log the number of LEIs in the chunk
+
             api_data = self.gleif_service.call_gleif_api(lei_chunk, chunk_size)
             self._process_lei_entries(api_data, dataset)
-            print(f"Chunk {i} processed successfully.")
 
+            logging.info(f"Chunk {i} processed successfully.")
+
+        logging.info("All chunks processed.")
         self._calculate_transaction_costs(dataset)
-        print("Transaction costs calculated successfully.")
+        logging.info("Transaction costs calculated successfully.")
         return dataset
 
     @staticmethod
@@ -43,14 +50,13 @@ class EnricherService:
             notional = float(row['notional'])
             rate = float(row['rate'])
 
-            transaction_costs = self._calculate_transaction_costs_for_country(country, notional,rate)
+            transaction_costs = self._calculate_transaction_costs_for_country(country, notional, rate)
             dataset.at[index, 'transaction_costs'] = transaction_costs
 
     @staticmethod
     def _calculate_transaction_costs_for_country(country, notional, rate):
         if country == 'GB':
-            result = notional * rate - notional
-            return result
+            return notional * rate - notional
         elif country == 'NL':
             return abs(notional * (1 / rate) - notional)
         else:

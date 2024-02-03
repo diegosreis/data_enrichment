@@ -1,4 +1,5 @@
 import requests
+import logging
 
 
 class GleifService:
@@ -14,5 +15,5 @@ class GleifService:
         if response.status_code == 200:
             return response.json()['data']
         else:
-            print(f"Error in API request: {response.status_code}")
+            logging.info(f"Error in API request: {response.status_code}")
             return []

@@ -1,14 +1,16 @@
 import argparse
+import logging
 import os
 
 import pandas as pd
 
 from services.enricher_service import EnricherService
+logging.basicConfig(level=logging.INFO)
 
 
 def save_result(dataset, output_path):
     dataset.to_csv(output_path, index=False)
-    print(f"Result saved to {output_path}")
+    logging.info(f"Result saved to {output_path}")
 
 
 def main():
@@ -25,10 +27,10 @@ def main():
     try:
         dataset = pd.read_csv(args.file_path)
     except FileNotFoundError:
-        print(f"Error: The file {args.file_path} was not found.")
+        logging.error(f"Error: The file {args.file_path} was not found.")
         return
     except pd.errors.EmptyDataError:
-        print(f"Error: The file {args.file_path} is empty.")
+        logging.error(f"Error: The file {args.file_path} is empty.")
         return
 
     enrich_service = EnricherService()
@@ -41,9 +43,9 @@ def main():
             output_path = os.path.join(output_dir, "enriched_result.csv")
             save_result(enriched_dataset, output_path)
         else:
-            print(enriched_dataset)
+            logging.info(enriched_dataset)
     else:
-        print("Error: Failed to enrich the dataset.")
+        logging.error("Error: Failed to enrich the dataset.")
 
 
 if __name__ == "__main__":
